@@ -1,0 +1,424 @@
+---
+title: "REPORT IC-LAMIR"
+author: "Huriel Ruan Reichel"
+date: "09/07/2020"
+output: word_document
+---
+
+## Abstract
+
+Sedimentary carbonate structures like thrombolites are common in environments that are similar to the pre-salt area. A better understanding of the relation between these structures and the geological formation is required though. This way it is possible to infer about new structures so their geology can be better understood. This work was made on a study area in the Del Toro lake, Chile, where with UAV imagery and Digital Terrain Modelling, geometrical attributes of these structures were measured. The objective was to identify clusters of thrombolites using different Machine Learning algorithms in order to better understand the thrombolites' pattern and relation to other environments in which thrombolites appear. K-Means with different hyperparameter tunning, Ward Hierarchical Agglomerative Model and a Model Based approach were applied and compared. As direct validation is unsuitable in Unsupervised Learning, the results were also compared in therms of feature importance, spatial dependence and the orthoimagery. In general, Ward Hierarchical Clustering was very similar to K-Means with *k*=4. K=Means with *k*=3 showed the lowest spatial dependece, whilst the model based approach the highest. The bayesian model was also the most complex one, especially by his capacity of detecting outliers. 
+
+## Introduction
+
+### 1.1 Thrombolites 
+
+Thrombolites and similiar sedimentary carbonate structures are common in hypersaline, hyperthermophile and alkaline environments (Birgel et al., 2015; Mohriak et al., 2015; Muniz and Bosence, 2015), as the pre-salt. A better understanding of the relation between these structures and the geological formation is required though. This way it is possible to infer abour new structures so their geology can be better understood.
+
+Thrombolites are forms of microbial communities, either photosynthetic or heterotrophic. They are usually found near water surfaces and are build by the cementation of sediments provenient from cyanobacteria (Kennard and James, 1986). These communities are rare in earth's surface. The Campos Basin, Brazil (Muniz and Bosence, 2015), The Lagoa Salgada, Brazil, the Travertines, Italy, the Carbonate Tufas, Brazil (Mohriak et al, 2015) and the Amadeus Basin, Australia (Kennard and James, 1986) are location examples of thrombolites or stromatolites.  
+
+
+### 1.2 Characteristics and Spatial Configuration
+
+Those structures appear in different forms and characteristics. Some of them allow different classifications for each type of structure. Muniz and Bosence (2015) presented 9 different names: Breccia, Shale, Marl, Conglomerate, Mudstone, Grainstone, Laminite, Stromatolite and Thrombolites. In this work, the focus is on stromatolites and thrombolites, which were present at this works' study area. These authors used colour, resistivity, features, for example, as the main attributes for classification. Other characteristics that can be used and measured remotely by sensor linked to Unmanned Aerial Vehicles (UAVs) are geometrical attributtes, as height, volume, diametre, radius and area. Despite those, the spatial configuration of these structures can also be evaluated, as it was not studied before. Many GIS (Geographical Information Systems) related Softwares can be used to perform Spatial Analysis and, therefore, bring clearence regarding the spatial set.
+
+Point Process is a widely studied branch of Spatial Statistics that works with spatialy referenced points with no mathematical characteristics embeded to them (Møller and Waagepetersen, 2004; Ripley, 2005; Lieshout, 2010; Plant, 2019). Therefore only the spatial information can be analysed, such as euclidean distance between samples. Adding other attributes to theses analysis, as the samples' geometrical features, requires another group of tools, so all these variables can be simultaneously evaluated. One approach is to use Machine Learning tools, more especifically Unsupervised Learning ones.
+
+### 1.3 Unsupervised Learning
+
+Machine Learning is a sub-area of Artifical Intelligence (AI) which is based on techniques that improve automatically through experience, without the need for explicit programming. Machine Learning has been used for many applications, like Computer Vision (Sebe et al., 2005; Singh, 2019), Cyber-Security (Dua and Du, 2016), and Geo-environmental applications as well (Kanevski et al., 2009). 
+
+Machine Learning can be divided mainly into Supervised, Unsupervised and Reinforcement Learning. Supervised and Reinforcement Learning are both methods that allow direct validation of results, which can be done by splitting data into train and test samples and/or by cross validation. Unsupervised Learning is used when this possibility is not available. The main use of Unsupervised Learning is clustering analysis, which algorithms assign data into a certain number of groups, or so called clusters. This is made only with input data and by identification of common or disparate information of each piece of data. Finally, the groups defined by the clustering algorithm include only data that share common information. More about Unsupervised Learning can be found in Xu and Wunsch (2008), Hastie et al (2009), and James et al. (2013). 
+
+### 1.4 Objective
+
+The purpose of this work is to identify clusters of thrombolites in the Del Toro Lake, Chile, based on their geometrical and spatial attributes, and using different approaches (algorithms) so we can better understand the thrombolites' pattern and relation to other environments in which thrombolites appear. 
+
+## Methodology
+
+### 2.1 Study area 
+
+The study area is near the Del Toro Lake, Chile, as shown in figure 1. The Geology of the area consists of Cretaceous sedimentary rocks from the Miocene and today landscapes have been shaped by orogenic and erosional processes. Though glacial erosion is the main responsible for the most recent forms (Altenberger, 2003). 
+
+```{r figure 1, echo=FALSE}
+knitr::include_graphics("C:/Geostatistics/shell/tromb3d/utm/location.png")
+```
+Figure 1 - Study area location in Del Toro Lake, Chile. EPSG: 32719
+
+### 2.2 Flight and pre-processing
+
+The first step was to organize and plan the UAV flight over the study area. The UAV used was a Phantom P4 Pro from the DJI company with a RGB camera attached. Due to the high wind speed, and overall bad flight conditions, fly altitude could not surpass 40 m. Many images were removed due to the bad quality, even so, the orthoimagery ended up with cell size of 2.5 mm. Agisoft Photoscan Software was used to build the orthoimagery and the Digital Terrain Model. 
+
+### 2.3 Geometrical features 
+
+Following, in order to obtain geomtetrical characteristics of the thrombolites, the thrombolites were manually vectorized based on the orthoimagery. With that, surface area and perimetre were measured. Another characteristic mapped was whether the thrombolites were fallen of not, which was computed as a boolean variable. 
+
+After that, radius was calculated. This was done by creating the smallest possible circle around the polygons and forthcoming basic geometrical calculations. The last part of this geometrical analysis was to measure volume. This was made by first creating a Triangular Irregular Network (TIN) surface using only terrain data points. These points were selected manually based on orthoimagery and the DTM. A simple raster calculator was used then to subtract the Original DTM elevation data from the TIN DTM. Firstly, it allowed height measurement, which was specifically done by zonal statistics (Count, Mininimum, Maximum, Range, Mean, Standard Deviation and Sum). After that, volume was measured using each pixel height (elevation value) and area, which values were then set to each polygon. 
+
+Finally, from each polygon a centroid was created containing all the variables stated so forth. After that, the cluster analysis was performed in R Statistical Software, which is detailed below. A summary of the methodology can be seen in figure 2. 
+
+```{r figure 2, echo=FALSE}
+knitr::include_graphics("C:/Geostatistics/shell/tromb3d/methods.png")
+```
+Figure 2 - Summary of methodology
+
+### 2.4 Clustering methods
+
+### 2.4.1 K-Means
+
+The Clustering analysis was performed with three different methods, which allows more robust comparison and discussion. The first methods used was a classical Unsupervised Learning algorithm called K-Means. This algorithm is centred in a target number *k*, which will define the final number of clusters. Based on the centroid of each cluster, the K-Means algorithm will assign each to point to a cluster based on the incluster sum of squares. This means that a defining if a point belongs to one cluster or to another is done uniquely based on the distance to the cluster centroid. If the point is closer from centroid A than from B, it belongs to cluster A. Moreover, only in order to clarify, the centroid are randomly set based on the *k* value, and they iterate until there is no change in centroid values. Iterations limit is defined by the user, which in case was 500. More about the K-Means algorithm can be found in Garbade (2018) and in James et al. (2013)
+
+As seen above, defining the *k* value is essential, but it can also be very subjetive. In order to avoid bias, some techniques can be applied to determine an optimal *k* value. In general, the idea is to find the value in which the total within-cluster sum of square (WSS) is minimized. The first method used to find that is called Elbow method. This technique is based on a function of WSS for every *k* value. The ideia is to find the value when there is no significant reduction in WSS. It is called elbow, because normally this value is shown as a 'break', or 'knee' on the graph. 
+
+As the Elbow method does not reduce much the subjetivity, it is important to include other optimization methods. The second one used is the Silhouette method. Kaufman et al. (1990) explain this method in detail, though the main ideia is to plot a function of the average silhouette for every *k* value, which maximum will expose the best *k*. In other words, the Silhouette calculates how well a data point fits into a cluster, so its maximum values would be a good estimative. A succint explanation of optimization strategies for the *k* value can be found on Kassambara (2018).
+
+The third and last method used to check the best *k* value was the Gap statistic (Tibshirani et al., 2001). Applying this technique is similar to the Silhouette method. The idea is to find the highest gap statistic in graph for the different *k* values. The gap statistic is a measure of how far is data from a random uniform distribuition. 
+
+### 2.4.2 Ward Hierarchical Agglomerative Clustering method
+
+The second clustering method comes from a classical group of clustering methods, the Hierarchical Clustering, which is the Ward Hierarchical Agglomerative Clustering method. This is a frequentist approach of unsupervised learning presented by Ward (1963) and deeply explained by Murtagh et al. (2014), available in R with the *hclust* function. An example of usage can also be found in Teicknet et al. (2020).
+
+### 2.4.3 Model Based Approach
+
+The third method used is a Model Based Approach, which relies on a bayesian framework. The main basis is to use maximum likelihood estimation and Bayes criteria to identify the most likely model and number of clusters. The R package used for applying this method is the *mclust*, developed by Scrucca et al. (2016).
+
+### 2.5 Validation
+
+As seen, unsupervised learning algorithms take into account only input information and direct validation is not possible. Although, some methods can be applied to the results in order to get some sense out of the results. The first approach will be to compare the clusters to the UAV orthoimagery. Another strategy will be to understand which variables had a higher weight in the process of assigning data to each cluster. 
+
+
+## Results and Discussion
+
+The elbow method used to determine an optimal number of clusters for the K-Means algorithm lead to the graph in figure 3, which 'elbow' is in the value of 4 for *k*. 
+
+```{r figure 3 code, echo=FALSE, message=FALSE, warning=FALSE, results='hide'}
+library(rgdal)
+library(sp)
+library(tidyverse)
+library(factoextra)
+library(NbClust)
+library(dplyr)
+library(ggplot2)
+library(mclust)
+#data preparation
+thrombolites <- readOGR("C:/Geostatistics/shell/tromb3d/utm/thrombolites.shp")
+zonal_stats <- read.table("C:/Geostatistics/shell/tromb3d/utm/zonal_stats2.txt", sep = ',', 
+col.names = c('row', 'ORIG_FID', 'Count', 'Area', 'Min', 'Max', 'Range', 'Mean', 'std', 'Sum'), skip=1)
+thrombolites <- merge(thrombolites, zonal_stats, by = 'ORIG_FID')
+#cleaning data up
+thrombolites <- as.data.frame(thrombolites@data)
+thrombolites <- thrombolites %>% select(3:10, 12:19)
+thrombolites$fallen <- as.numeric(thrombolites$fallen)-1
+#ckecking wheter there are NA values
+sum(is.na(thrombolites))
+#keep and unscaled data frame
+unscaled <- thrombolites
+#standardize variables
+thrombolites <- scale(thrombolites)
+```
+
+```{r figure 3, echo=FALSE, message=FALSE, warning=FALSE}
+##Determine number of clusters
+#Elbow method
+fviz_nbclust(thrombolites, kmeans, method = "wss") +
+  geom_vline(xintercept = 4, linetype = 2)+
+  labs(subtitle = "Elbow method")
+```
+Figure 3 - Elbow method for defining *k* value.
+
+
+The second method to define the optimal number for *k* was the Silhouette method, which graph is shown in figure 4.
+```{r figure 4, echo=FALSE, message=FALSE, warning=FALSE}
+#Silhouette method
+fviz_nbclust(thrombolites, kmeans, method = "silhouette")+
+  labs(subtitle = "Silhouette method")
+```
+Figure 4 - Silhouette method for defining *k* value.
+
+
+This time, the *k* method automatically set as 9, much higher than the value presented by the Elbow method. Finally, with the Gap statistic method (figure 5), *k* was set as 1, or better, the highest number though to be coherent, with 500 iterations. It seems that Gap Statistic does not find an optimal number of clusters, as the higher the *k*, the higer the statistic and 1 is stated as the best value. Though with stating 10 as the highest possible number of clusters, we can interpret this 10 as the value defined by the Gap statistic. Though, to proceed, different *k* values were used, avoiding bias as misinterpretation.
+
+```{r figure 5, echo=FALSE, message=FALSE, warning=FALSE}
+#Gap statistic
+set.seed(123)
+fviz_nbclust(thrombolites, kmeans, nstart = 25,  method = "gap_stat", nboot = 500)+
+  labs(subtitle = "Gap statistic method")
+```
+Figure 5 - Gap Statistic method for defining *k* value.
+
+
+The first application of the K-Means algorithm was made with a *k* value of 4 clusters, which was given by the Elbow-method (figure 6).
+
+```{r figure 6, echo=FALSE, message= FALSE, warning=FALSE}
+##K-Means Cluster Analysis
+fit <- kmeans(thrombolites, 4) # 4 clusters 
+#get cluster means
+aggregate(thrombolites,by=list(fit$cluster),FUN=mean)
+#append cluster assignment
+thrombolites_cluster <- data.frame(thrombolites, fit$cluster)
+#plot clusters
+ggplot(thrombolites_cluster, aes(x=POINT_X, y=POINT_Y, col=factor(fit.cluster), shape=factor(fit.cluster))) + geom_point()
+```
+Figure 6 - K-Means clustering result with *k* = 4.
+
+In this case, spatial configuration seems to have played an important role for the definition of clusters. Even by defining the *k* as 4, three major groups were created. One in the northwest, the other in the centre and the last in the southeast part of the study area. Apparently, group 4 is more widely spread than groups 2 and 3. Group 1 is the one with the smallest number of points and therefore can be though to be excludable. 
+
+With that in mind, K-Means Clustering was performed with 3 groups too and the result can be seen in figure 7.
+
+```{r figure 7, echo=FALSE, message= FALSE, warning=FALSE}
+##K-Means Cluster Analysis
+fit3 <- kmeans(thrombolites, 3) # 3 clusters 
+#get cluster means
+aggregate(thrombolites,by=list(fit3$cluster),FUN=mean)
+#append cluster assignment
+thrombolites_cluster3 <- data.frame(thrombolites, fit3$cluster)
+#plot clusters
+ggplot(thrombolites_cluster3, aes(x=POINT_X, y=POINT_Y, col=factor(fit3.cluster), shape=factor(fit3.cluster))) + geom_point()
+```
+Figure 7 - K-Means clustering result with *k* = 3.
+
+
+Removing one cluster assignment from the algorithm stops the K-Means from creating a too small cluster indeed, though spatial configuration does not seem to play such a key role in the analysis this time. Group 1 is centred in the northwest site, though the other two groups are more spatially mixed. Aiming at a better comprehension of how each feature influenced in the creation of clusters with K-Means algorithm, figure 8 shows in a boxplot the weight of each feature. 
+
+```{r figure 8, echo = FALSE, message=FALSE, warning=FALSE}
+##Measuring feature importance
+devtools::install_github("o1iv3r/FeatureImpCluster")
+library(FeatureImpCluster)
+library(flexclust)
+dat <- thrombolites_cluster[,1:16]
+dat$data <- thrombolites_cluster[,1:16]
+dat$clusters <- thrombolites_cluster$fit.cluster
+set.seed(10)
+res <- kcca(dat$data, k=4)
+FeatureImp_res <- FeatureImpCluster(res, as.data.table(dat$data))
+plot(FeatureImp_res)
+```
+Figure 8 - Feature importance in K-Means clustering with *k* = 4.
+
+Besides that, a barplot showing the most important features for assigning each cluster is present in figure 9. 
+
+```{r figure 9, echo = FALSE, message=FALSE, warning=FALSE}
+barplot(res)
+```
+Figure 9 - Feature importance for each cluster in K-Means clustering with *k* = 4.
+
+In a similar the same procedure was applied to K-Means with *k*=3 for comparison reasons.
+
+```{r figure 10, echo = FALSE, message=FALSE, warning=FALSE}
+##Measuring feature importance
+dat$data <- thrombolites_cluster3[,1:16]
+dat$clusters <- thrombolites_cluster3$fit3.cluster
+set.seed(10)
+res <- kcca(dat$data, k=3)
+FeatureImp_resk3 <- FeatureImpCluster(res, as.data.table(dat$data))
+plot(FeatureImp_resk3)
+```
+Figure 10 - Feature importance in K-Means clustering with *k* = 3.
+
+The barplot showing the most important features for assigning each cluster for K-Means with *k*=3 is present in figure 11.
+
+```{r figure 11, echo = FALSE, message=FALSE, warning=FALSE}
+barplot(res)
+```
+Figure 11 - Feature importance for each cluster in K-Means clustering with *k* = 3.
+
+
+Either when running K-Meand with *k*=4 and with *k*=3, spatial features (latitude and longitude - POINT_X and POINT_Y) are by far the most significant features for assigning clusters. Height related variables are also very strong for the clustering algorithm in both cases, after latitude and longitude coordinates. One of the features that varies considerably between the tests is whether the thrombolites were fallen or not. With *k*=4, the 'fallen' atributte plays a minor role, whilst with *k*=3 a more major role. 
+both - lat/long and height related
+
+When looking at the weights for each cluster in figures 9 and 11, K-Means with 4 clusters presented a higher variance of each variable's importance. This means that some features had much higher weight than others, especially in the third cluster. Meanwhile, the K-Means algorithm with *k*=3 showed more similar weights for each feature. However in both cases coordinates had a considerably higher importance. The K-Means algorithm results will be adressed again later, when plotted over satelite and UAV imagery.
+
+The second algorithm used was the Ward Hierarchical Agglomerative Clustering method. As all hierarchical algorithms, the Ward Clustering is based on a dendogram. Setting how many clusters will be created is also a hyperparameter. This can be done by the crude observation of the dendogram, plotted on figure 12. A naive approach was made by creating wither 3 and 4 clusters. As seen, a forth clusters seems too a too detailed splitting method. 
+
+```{r figure 12, echo = FALSE, message=FALSE, warning=FALSE}
+##Ward Hierarchical Clustering
+d <- dist(thrombolites, method = "euclidean") # distance matrix
+fit.ward <- hclust(d, method="ward.D")
+par(mfrow = c(1,2))
+plot(fit.ward) # display dendogram
+groups <- cutree(fit.ward, k=3) # cut tree into 3 clusters
+# draw dendogram with red borders around the 3 clusters
+rect.hclust(fit.ward, k=3, border="red")
+plot(fit.ward) # display dendogram
+groups2 <- cutree(fit.ward, k=4) # cut tree into 4 clusters
+# draw dendogram with red borders around the 4 clusters
+rect.hclust(fit.ward, k=4, border="red")
+table(groups)
+ward_df <- thrombolites_cluster3 %>%
+  mutate(ward = groups)
+```
+Figure 12 - Ward Hierarchical Agglomerative Clustering algorithm Dendogram.
+
+
+A less naive way to determine the number of cluster within a frequentist approach is to consider only clusters with a high probability of being true clusters, or with low p-values. Figure 13 displays two clusters when considering only p-values lower than 0.05. However two clusters only is a too small value for this analysis.
+
+```{r figure 13, echo =F, warning=F, message=F}
+# Ward Hierarchical Clustering with Bootstrapped p values
+library(pvclust)
+fit.ward2 <- pvclust(thrombolites, method.hclust="ward",
+               method.dist="euclidean")
+plot(fit.ward2) # dendogram with p values
+# add rectangles around groups highly supported by the data
+pvrect(fit.ward2, alpha=0.95)
+```
+Figure 13 - Ward Hierarchical Agglomerative Clustering algorithm Dendogram showing clusters with p-value lower than 0.05. alpha values are also displayed.
+
+
+Figure 14 also shows how important is each feature for the algorithm. In this case, Latitude has a slight lesser importance and stating whether the thrombolite was fallen or not a higher weight. Finally, in figure 13, we can see the result of the Ward Hierarchical Agglomerative Clustering Algorithm considering three clusters. The visual result from this method is very similar to K-Means with *k*=3. 
+
+```{r figure 14, echo = F, message= F, warning=F}
+#plot clusters
+ggplot(ward_df, aes(x=POINT_X, y=POINT_Y, col=factor(ward), shape=factor(ward))) + geom_point()
+```
+Figure 14 - Ward Hierarchical Agglomerative clustering result with 3 clusters.
+
+
+In opposition to the frequentist view, a model based approach was performed. The choice of the best model in this Bayesian analysis is based on the Bayesian Information Criteria (BIC), when lowest, better the fit. By applyng the 
+*Mclust* function to the thrombolites data set, the best model was defined as a Gaussian finite mixtude model, diagonal with equal shape and varying volume. The highest BIC reached was -4815.873 when applying this model with 6 clusters. As there are 16 variables to consider in the cluster analysis, a plot showing how important was every feature was is hard to interpret in this model based approach. Even so, figure 15 shows the clusters that can be created when comparing each pair of variables. This gives an idea of how important each feature was. In this case, agai, coordinates were essential, followed by some height derivated attributes. The 'fallen' variable seemed to be one of the less weighted. 
+
+```{r figure 15, echo=F, message=F, warning=F}
+##Model based approach
+fit_mb <- Mclust(thrombolites, G=3:15)
+mb_class <- fit_mb$classification
+table(mb_class)
+model_based_df <- thrombolites_cluster3 %>%
+  mutate(model_based = mb_class)
+plot(fit_mb, what = "classification")
+```
+Figure 15 - Model Based approach scatterplot of classification for each pair of variables.
+
+
+Figure 16 displays the 6 suggested clusters created by the Model Based Approach. Despite a higher number of clusters, the overall configuration of them is similiar to the others models presented. Group 4, the centre one, is now more spread, just as group 1, whilst the other groups occupy small areas and are more concentrated. In order to better compare those models, their results will be plotted over a satelite and the UAV imagery.
+
+```{r figure 16, echo = F, message=F, warning=F}
+#plot clusters
+ggplot(model_based_df, aes(x=POINT_X, y=POINT_Y, col=factor(model_based), shape=factor(model_based))) + geom_point()
+```
+Figure 16 - Model Based approach clustering result.
+
+
+After all algorithm were ran, the clusters were plotted over the orthoimagery, so other patterns could be infered. Figure 17 shows the 4 algorithms used over the UAV imagery. K-Means, as stated before, was the algorithm that spreaded its clusters the most in therms of the spatial pattern. With *k* = 4, the major trend in clustering assignment seems to be latitude, what does not happen to K-Means with *k* = 3, as neither latitude or longitude seems to play a key role in classification, despite what figures 9 and 10 demonstrate. In contrast, the most spatially driven result seems the one produced with the Ward Hierarchical Agglomerative Clustering method. Looking at the orthoimagery, both the K-Means with *k*=3 and the Ward algorithms present coherent results. The thrombolites have a visually varying height and dimensions on the Y axis. Those in the centre seem the biggest ones regarding many geomtrical attributes, which is potentially reduced in North and South directions. 
+
+
+```{r figure 17, echo=FALSE}
+knitr::include_graphics("C:/Geostatistics/shell/tromb3d/utm/clusters_ortho.png")
+```
+Figure 17 - All cluster results over Orthoimagery from UAV.
+
+
+
+The Del Toro lake is at the left hand side of the figure (West), what does not seem to be very relevant for the clustering algorithms by itself, despite the fact that these strucures are dependent of a aquatic / semi-aquatic environment. In other words, the structures' geometry seems to be more dependent on other factor than distance to water. As explained before, fallen played a major role in some algorithms and a smaller one in others. Visually, when looking at whether the thrombolite was fallen or not, K-Means (*k*=3) shows to be the one that carries that heigher weight fot this feature, as verified before. 
+
+Not shown in the UAV imagery is a high scarpment to the Northeast of the study area that accompanies the same direction as the thrombolites. This also does not appear to have an indirect effect on the clustering algorithms either, as none of them showed a pattern structure in the same direction. Finally, a special discussion can be made related to the model based approach. Despite general complexity, both in therms of interpretability of the bayesian approach and the resulting clusters (six), this is the algorithm that best understands minor details as well. When looking with a zoom in at some spots, the model based approach identifies explicit outliers within explicit clusters. In order to understand this in a better way, figure 18 shows some examples of well spotted outliers by the model based algorithm.
+
+
+```{r figure 18, echo=FALSE}
+knitr::include_graphics("C:/Geostatistics/shell/tromb3d/zoom.png")
+```
+Figure 18 - Zoom in to compare Model Based Approach capability of detecting outliers.
+
+
+A final comparison is to determine spatial dependence of the cluster assignment. A way to do this to first calculate distance between each pair of points and then measure their variance. This is similar whats is called a variogram in the Geostatistics literature (Diggle and Ribeiro, 2005). The variogram plot can be seen in figure 19. 
+
+```{r, echo = FALSE, warning=FALSE, message=FALSE, results='hide'}
+clusters <- model_based_df %>%
+  mutate(k4 = thrombolites_cluster$fit.cluster)
+
+clusters <- clusters %>%
+  mutate(ward = ward_df$ward)
+
+clusters <- clusters %>%
+  mutate(k3 = thrombolites_cluster3$fit3.cluster)
+
+clusters$unsc <- sd(unscaled$POINT_X) * clusters$POINT_X + mean(unscaled$POINT_X)
+
+thromb.shp <- readOGR("C:/Geostatistics/shell/tromb3d/utm/thrombolites.shp")
+merge <- merge(thromb.shp, clusters, by.x = 'POINT_X', by.y = 'unsc')
+sum(thromb.shp$POINT_X == clusters$unsc)
+#outfile <- 'C:/Geostatistics/shell/tromb3d/utm/merged_clusters.shp'
+#shapefile(merge, outfile, overwrite=TRUE)
+library(geoR)
+df <- data.frame(merge$POINT_Y.x, merge$POINT_X, merge$model_based, merge$k4, merge$k3, merge$ward)
+mb <- as.geodata(df, coords.col = 1:2, data.col = 3)
+mbv <- variog(mb)
+
+k4 <- as.geodata(df, coords.col = 1:2, data.col = 4)
+k4v <- variog(k4)
+
+k3 <- as.geodata(df, coords.col = 1:2, data.col = 5)
+k3v <- variog(k3)
+
+w <- as.geodata(df, coords.col = 1:2, data.col = 6)
+wv <- variog(w)
+```
+
+```{r figure 19, echo = FALSE, message=FALSE, warning=FALSE}
+plot(mbv, ylim=c(0,6), col = 'black')
+lines(mbv, col = 'black', lwd = 1)
+lines(k4v, col = "red", lwd = 3)
+lines(k3v, col = 'orange', lwd = 3)
+lines(wv, col = "blue", lty = 2, lwd = 1)
+legend(0, 6, c("model based", "K-Means (k=4)", "K-Means (k=3)", "Ward Hierarchical"), 
+       lty = c(1,1,1,2), lwd = c(1,3,3,1), col = c('black', 'red','orange','blue'))
+```
+Figure 19 - Empirical Variograms of the resulting cluster assignment as geostatistical variable.
+
+
+By far, the model based approach presented the highest spatial dependence, followed by K-Means with *k* = 4 and the Ward Hierarchical Model, with the last spatial dependence given by the K-Means algorithm with *k* = 3. Again, despite the increase in complexity, the model based approach is the one that seems to differ different groups, outliers and does that with a stronger spatial pattern. 
+
+## Conclusion
+
+The algorithms used presented considerably different results on cluster assignment with the thrombolites data set. All of them gave more importance to spatial coordinates, though some gave more weight to some features in the place of others. Ward Hierarchical Agglomerative has shown to have a big spatial characteristics when compared to K-Means (especially with 3 clusters) and its resluts were very similar to K-Means with *k*=4. Though, when thinking about less clusters it showed a very reasonable assignment. Model Based Approach was by far the most complex and it was capable of detecting outliers by maintaining a stronger spatial dependence too. Geometrical insights of the thrombolites were brought by those analysis and in special their relation to other features in a spatial framework. Next works shall focus on other characteristics and this results may pull new insights in other Machine Learning techniques to be applied.
+
+
+## References
+
+Birgel, D., Meister, P., Lundberg, R., Horath, T. D., Bontognali, T. R. R., Bahniuk, A. M., … McKenzie, J. A. (2015). Methanogenesis produces strong13C enrichment in stromatolites of Lagoa Salgada, Brazil: a modern analogue for Palaeo-/Neoproterozoic stromatolites? Geobiology, 13(3), 245–266. doi:10.1111/gbi.12130 
+
+Mohriak, W. U., Perdomo, L. V., Plucenio, D. M., & Saad, J. L. (2015). Challenges for petrophysical characterization of presalt carbonate reservoirs. 14th International Congress of the Brazilian Geophysical Society & EXPOGEF, Rio de Janeiro, Brazil, 3-6 August 2015. doi:10.1190/sbgf2015-123 
+
+Muniz, M. C., & Bosence, D. W. J. (2015). Pre-salt microbialites from the Campos Basin (offshore Brazil): image log facies, facies model and cyclicity in lacustrine carbonates. Geological Society, London, Special Publications, 418(1), 221–242. doi:10.1144/sp418.10 
+
+Kennard, J. M., & James, N. P. (1986). Thrombolites and Stromatolites: Two Distinct Types of Microbial Structures. PALAIOS, 1(5), 492. doi:10.2307/3514631 
+
+Moller, J. and Waagepetersen, R.P., 2003. Statistical inference and simulation for spatial point processes. CRC Press.
+
+Plant, R.E., 2019. Spatial data analysis in ecology and agriculture using R. cRc Press.
+
+Ripley, B.D., 2005. Spatial statistics (Vol. 575). John Wiley & Sons.
+
+Lieshout, M., 2010. Spatial Point Process Theory in Gelfand, A.E, Diggle, P. J., Fuentes, M., Guttorp, P. Handbook of Spatial Statistics. CRC Press. 263 - 423.
+
+Sebe, N., Cohen, I., Garg, A. and Huang, T.S., 2005. Machine learning in computer vision (Vol. 29). Springer Science & Business Media.
+
+Dua, S. and Du, X., 2016. Data mining and machine learning in cybersecurity. CRC press.
+
+Singh, H., 2019. Practical Machine Learning and Image Processing. Apress.
+
+Kanevski, M., Pozdnoukhov, A., Pozdnukhov, A. and Timonin, V., 2009. Machine learning for spatial environmental data: theory, applications, and software. EPFL press.
+
+Hastie, T., Tibshirani, R. and Friedman, J., 2009. Unsupervised learning. In The elements of statistical learning (pp. 485-585). Springer, New York, NY.
+
+James, G., Witten, D., Hastie, T. and Tibshirani, R., 2013. An introduction to statistical learning (Vol. 112, p. 18). New York: springer.
+
+Xu, R. and Wunsch, D., 2008. Clustering (Vol. 10). John Wiley & Sons.
+
+Altenberger, U., Oberhänsli, R., Putlitz, B. and Wemmer, K., 2003. Tectonic controls and Cenozoic magmatism at the Torres del Paine, southern Andes (Chile, 51° 10'S). Revista geologica de Chile, 30(1), pp.65-81.
+
+Garbade, M. J. Understanding K-means Clustering in Machine Learning. Towards Data Science. 12th September, 2018. Available in: https://towardsdatascience.com/understanding-k-means-clustering-in-machine-learning-6a6e67336aa1
+
+Tibshirani, R., Walther, G. and Hastie, T., 2001. Estimating the number of clusters in a data set via the gap statistic. Journal of the Royal Statistical Society: Series B (Statistical Methodology), 63(2), pp.411-423.
+
+Kassambara, A. Cluster Validation Essentials. Determining The Optimal Number Of Clusters: 3 Must Know Methods. Datanovia, 2018. Available in: https://www.datanovia.com/en/lessons/determining-the-optimal-number-of-clusters-3-must-know-methods/#elbow-method
+
+Murtagh, Fionn and Legendre, Pierre, 2014. Ward's hierarchical agglomerative clustering method: which algorithms implement Ward's criterion? Journal of Classification, 31, 274–295. doi: 10.1007/s00357-014-9161-z.
+
+Ward, J.H. 1963, “Hierarchical Grouping to Optimize an Objective Function”, Journal
+of the American Statistical Association, 58, 236–244.
+
+Teickner, H., Knoth, C., Bartoschek, T., Kraehnert, K., Vigh, M., Purevtseren, M., Sugar, M. and Pebesma, E., 2020. Patterns in Mongolian nomadic household movement derived from GPS trajectories. Applied Geography, 122, p.102270.
+
+Scrucca L, Fop M, Murphy TB, Raftery AE (2016). “mclust 5: clustering, classification and density estimation using Gaussian finite mixture models.” The R Journal, 8(1), 289–317. https://doi.org/10.32614/RJ-2016-021.
+
+Diggle, P. J. Ribeiro Jr., P. J. 2007. Model-based Geostatistics. Springer Series in Statistics.
+
